@@ -1,4 +1,7 @@
 import { signIn, useSession } from "next-auth/react";
+import { getCsrfToken } from "next-auth/react";
+import type { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+
 import {
   Card,
   CardContent,
@@ -35,9 +38,7 @@ const loginFormSchema = z.object({
   password: z.string().min(1, "Senha requerida")
 })
 
-
-
-export default function LoginForm () {
+export default function LoginForm ({ csrfToken }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [ passwordVisibility, setPasswordVisibility ] = useState<boolean>(false)
 
   const form = useForm<z.infer<typeof loginFormSchema>>({
@@ -49,9 +50,7 @@ export default function LoginForm () {
   })
 
   function onSubmit(values: z.infer<typeof loginFormSchema>) {
-    signIn("credentials", {
-      callbackUrl: "/dashboard"
-    })
+    signIn("credentials", { contact: values.contact, password: values.password, callbackUrl: "/dashboard" })
   }
 
   return(
@@ -62,7 +61,8 @@ export default function LoginForm () {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} method="post" action="/api/auth/callback/credentials" className="space-y-8">
+              <input name="csrfToken" type="hidden" defaultValue={csrfToken} />
               <FormField
                 control={form.control}
                 name="contact"
@@ -92,7 +92,7 @@ export default function LoginForm () {
                       </div>
                     </FormControl>
                     <FormDescription>
-                      Está é a sua senha de acesso
+                      Esta é a sua senha de acesso
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -105,8 +105,16 @@ export default function LoginForm () {
           </Form>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <p className="text-xs">Ainda não é registrado? <Link className="underline" href={"/registrar"}>Registre-se</Link></p>
+          <p className="text-xs">Ainda não é registrado? <Link className="underline" href={"/singup"}>Registre-se</Link></p>
         </CardFooter> 
     </Card>
   )
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  return {
+    props: {
+      csrfToken: await getCsrfToken(context),
+    },
+  }
 }
