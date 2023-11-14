@@ -25,6 +25,8 @@ const config = {
     "@typescript-eslint/require-await": "off",
     "@react-hooks/exhaustive-deps": "off",
     "@typescript-eslint/prefer-optional-chain": "off",
+    "@typescript-eslint/no-empty-interface": "off",
+
 
     "@typescript-eslint/consistent-type-imports": [
       "warn",
