@@ -75,7 +75,7 @@ export default function UserRegisterForm () {
   return(
     <Card className="min-w-[20em] min-h-[30em]">
         <CardHeader>
-          <CardTitle>Login</CardTitle>
+          <CardTitle>Registrar-se</CardTitle>
           <CardDescription>Vamos precisar de alguns dados</CardDescription>
         </CardHeader>
         <CardContent>
