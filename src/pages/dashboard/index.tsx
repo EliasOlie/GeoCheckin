@@ -43,7 +43,7 @@ export default function Dashboard() {
             console.info(error);
           }
         }}
-          constraints={ { aspectRatio: 16/9 } }
+          constraints={ { aspectRatio: 1/1, facingMode: "environment" } }
         />
         </div>
       <p>{data}</p>
