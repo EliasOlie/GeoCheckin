@@ -1,13 +1,17 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useSession, signOut } from "next-auth/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/utils/api";
+import { QrReader } from 'react-qr-reader';
 import Head from "next/head";
 import BottomBar from "@/components/BottomBar/BottomBar";
 
 export default function Dashboard() {
-  const { data, status } = useSession()
+  const { status } = useSession()
+  const [ data, setData ] = useState()
   const router = useRouter()
+  const getUserQuery = api.user.getUser.useQuery().data
 
   useEffect(() => {
     if(status === "unauthenticated") {
@@ -23,9 +27,25 @@ export default function Dashboard() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        {data?.user.id}
-        {data?.user.name}
+        {getUserQuery?.id}
+        {getUserQuery?.name}
         <p onClick={() => signOut()}>Sair</p>
+        
+        <div className="max-w-[50vw] mx-auto mt-4">
+
+        <QrReader
+        onResult={(result, error) => {
+          if (!!result) {
+            setData(result?.text);
+          }
+
+          if (!!error) {
+            console.info(error);
+          }
+        }}
+        />
+        </div>
+      <p>{data}</p>
       </main>
       <BottomBar />
     </>
