@@ -9,7 +9,7 @@ import BottomBar from "@/components/BottomBar/BottomBar";
 
 export default function Dashboard() {
   const { status } = useSession()
-  const [ data, setData ] = useState()
+  const [ data, setData ] = useState<string>("Sem resultado")
   const router = useRouter()
   const getUserQuery = api.user.getUser.useQuery().data
 
@@ -34,15 +34,16 @@ export default function Dashboard() {
         <div className="max-w-[50vw] mx-auto mt-4">
 
         <QrReader
-        onResult={(result, error) => {
-          if (!!result) {
-            setData(result?.text);
+        onResult={(resultado, error) => {
+          if (!!resultado) {
+                setData(resultado?.getText());
           }
 
           if (!!error) {
             console.info(error);
           }
         }}
+          constraints={ { aspectRatio: 16/9 } }
         />
         </div>
       <p>{data}</p>
