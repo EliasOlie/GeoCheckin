@@ -12,11 +12,18 @@ model User {
     name       String
     contact    String     @unique
     password   String
+    monthlyHours Int @default(80)
+    role Roles @default(USR)
     createdAt  DateTime   @default(now())
     modifiedAt DateTime   @default(now())
     active     Boolean    @default(true)
     checkins   Checkin[]
     checkouts  Checkout[]
+}
+
+enum Roles {
+  ADM
+  USR
 }
 
 model Instalation {

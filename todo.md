@@ -1,7 +1,12 @@
 # TODO:
 
-- [ ] Colocar os campos do update user como opcionais
-- [ ] Níveis de acesso
+- [ * ] Colocar os campos do update user como opcionais
+- [ * ] Níveis de acesso
+- [ * ] Atualizar cadastro de usuário para ter carga horária
+- [ ] Criar cadastro de plantão 
+- [ ] Criar relatório indivídual
+- [ ] Criar relatório mensal 
+- [ ] 
 
 ## Níveis de acesso:
 

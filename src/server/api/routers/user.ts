@@ -76,6 +76,28 @@ export const userRouter = createTRPCRouter({
       }
     }
   }),
+  getUserById: protectedProcedure
+    .input(z.number())
+    .mutation(async ({ctx, input}) => {
+    return ctx.db.user.findUnique({ where: { id: input }})
+  }),
+  getAllUsers: protectedProcedure.query(async ({ctx}) => {
+    return ctx.db.user.findMany({ orderBy: { name: "asc" }})
+  }),
+  updateUserMonthlyHours: protectedProcedure
+    .input(z.object({
+      userId: z.string(),
+      monthlyHours: z.string(),    
+  })).mutation(async ({ctx, input}) => {
+    await ctx.db.user.update({
+        where: {
+          id: parseInt(input.userId)
+        },
+        data: {
+          monthlyHours: parseInt(input.monthlyHours)
+        }
+      })
+  }),
   updateUser: protectedProcedure
     .input(
       z.object({
@@ -116,7 +138,8 @@ export const userRouter = createTRPCRouter({
             id: parseInt(ctx.session.user.id as unknown as string),
           },
           data: {
-            ...input,
+            name: input.name || user.name,
+            contact: input.contact || user.contact,
             password: input.password
               ? await bcrypt.hash(input.password, 12)
               : user.password,
