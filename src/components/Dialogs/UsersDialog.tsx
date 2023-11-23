@@ -47,7 +47,7 @@ export default function UserDialog() {
               </SelectTrigger>
               <SelectContent>
                 {users?.map(user => (
-                  <SelectItem value={user.id.toString()}>{user.name}</SelectItem>
+                  <SelectItem value={user.id.toString()} key={user.id}>{user.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
