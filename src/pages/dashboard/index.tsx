@@ -8,11 +8,12 @@ import Head from "next/head";
 import BottomBar from "@/components/BottomBar/BottomBar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast"
+import { GeolocationProps } from "@/utils/interfaces";
 
 export default function Dashboard() {
   const { status } = useSession()
   const [ data, setData ] = useState<string>("Sem resultado")
-  const [ location, setLocation ] = useState<any>()
+  const [ location, setLocation ] = useState<GeolocationProps>()
   const { toast } = useToast()
   const router = useRouter()
   const getUserQuery = api.user.getUser.useQuery().data
@@ -39,6 +40,7 @@ export default function Dashboard() {
       router.push("/")
     }
      window.navigator.geolocation.getCurrentPosition((pos) => setLocation(pos), console.error)
+    console.log(location)
 
   }, [status])
 
