@@ -7,17 +7,39 @@ import { QrReader } from 'react-qr-reader';
 import Head from "next/head";
 import BottomBar from "@/components/BottomBar/BottomBar";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast"
 
 export default function Dashboard() {
   const { status } = useSession()
   const [ data, setData ] = useState<string>("Sem resultado")
+  const [ location, setLocation ] = useState<any>()
+  const { toast } = useToast()
   const router = useRouter()
   const getUserQuery = api.user.getUser.useQuery().data
+  
+  const checkIn = api.dailly.checkIn.useMutation({
+    onSuccess(_, variables) {
+      toast({
+        title: "Ponto batido!",
+        description: "Você pode prosseguir!"
+      })
+    },
+    onError: () => {
+      toast({
+        title: "Ops parece que algo deu errado",
+        description: "Tente novamente, se persistir, chame o suporte",
+        variant: "destructive"
+      })
+    }
+  })
+  const checkOut = api.dailly.checkOut.useMutation({})
 
   useEffect(() => {
     if(status === "unauthenticated") {
       router.push("/")
     }
+     window.navigator.geolocation.getCurrentPosition((pos) => setLocation(pos), console.error)
+
   }, [status])
 
   return(
@@ -30,15 +52,24 @@ export default function Dashboard() {
       <main className="min-w-full min-h-screen">
         <div className="flex items-center justify-between min-w-full px-4 mt-4">
          <h2 className="text-xl font-bold">Olá {getUserQuery?.name} 👋</h2>
-          <Button className="bg-red-500">Sair</Button>
+          <Button className="bg-red-500" onClick={() => signOut()}>Sair</Button>
         </div>
         <div className="max-w-[50vw] mx-auto mt-4 border-2 border-black">
           <QrReader
           onResult={(resultado, error) => {
             if (!!resultado) {
               if(resultado.getText() === "checkin") {
-                  alert("Foi")
-                }
+                  checkIn.mutate({
+                    longitude: location.coords.longitude,
+                    latitude: location.coords.latitude,
+                  })
+              }
+              else if(resultado.getText() === "checkout") {
+                checkOut.mutate({
+                  longitude: location.coords.longitude,
+                  latitude: location.coords.latitude,
+                })
+              }
               setData(resultado?.getText());
             }
 
@@ -49,7 +80,7 @@ export default function Dashboard() {
             constraints={ { aspectRatio: 1/1, facingMode: "environment" } }
           />
         </div>
-        {data} 
+        {data}
       </main>
       <BottomBar />
     </>
