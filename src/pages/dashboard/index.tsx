@@ -62,14 +62,14 @@ export default function Dashboard() {
             if (!!resultado) {
               if(resultado.getText() === "checkin") {
                   checkIn.mutate({
-                    longitude: location.coords.longitude,
-                    latitude: location.coords.latitude,
+                    longitude: location?.coords?.longitude,
+                    latitude: location?.coords?.latitude,
                   })
               }
               else if(resultado.getText() === "checkout") {
                 checkOut.mutate({
-                  longitude: location.coords.longitude,
-                  latitude: location.coords.latitude,
+                  longitude: location?.coords?.longitude,
+                  latitude: location?.coords?.latitude,
                 })
               }
               setData(resultado?.getText());
