@@ -5,6 +5,7 @@ import {
   protectedProcedure,
 } from "@/server/api/trpc";
 import { isInRange } from "@/utils/geo";
+import { TRPCError } from "@trpc/server";
 
 export const daillyRouter = createTRPCRouter({
   checkIn: protectedProcedure
@@ -24,7 +25,10 @@ export const daillyRouter = createTRPCRouter({
         }
       })
     } else {
-      return null
+      throw new TRPCError({
+         code: "BAD_REQUEST",
+         message: "Você não está em uma localização registrada",
+       });
     }
   }),
 
