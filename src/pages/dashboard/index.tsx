@@ -19,17 +19,16 @@ export default function Dashboard() {
   const getUserQuery = api.user.getUser.useQuery().data
   
   const checkIn = api.dailly.checkIn.useMutation({
-    onSuccess(_, variables) {
+    onSuccess() {
       toast({
         title: "Ponto batido!",
         description: "Você pode prosseguir!"
       })
     },
     onError: (err) => {
-      alert(err.message)
       toast({
         title: "Ops parece que algo deu errado",
-        description: "Tente novamente, se persistir, chame o suporte",
+        description: err.message,
         variant: "destructive"
       })
     }
@@ -63,14 +62,14 @@ export default function Dashboard() {
             if (!!resultado) {
               if(resultado.getText() === "checkin") {
                   checkIn.mutate({
-                    longitude: location?.coords?.longitude || 0,
-                    latitude: location?.coords?.latitude || 0,
+                    longitude: location!.coords.longitude,
+                    latitude: location!.coords.latitude,
                   })
               }
               else if(resultado.getText() === "checkout") {
                 checkOut.mutate({
-                  longitude: location?.coords?.longitude || 0,
-                  latitude: location?.coords?.latitude || 0,
+                  longitude: location!.coords.longitude,
+                  latitude: location!.coords.latitude,
                 })
               }
               setData(resultado?.getText());

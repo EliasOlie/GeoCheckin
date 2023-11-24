@@ -19,15 +19,23 @@ export const daillyRouter = createTRPCRouter({
       return null
     }
     if(isInRange(instalacao.latitude, instalacao.longitude, input.latitude, input.longitude, instalacao.threshold)) {
-      await ctx.db.checkin.create({
-        data: {
-          userId: ctx.session.user.id
-        }
-      })
+
+      try {
+         await ctx.db.checkin.create({
+           data: {
+             userId: ctx.session.user.id
+          }
+        })
+      } catch (error) {
+          throw new TRPCError({
+           code: "BAD_REQUEST",
+           message: "Tente novamente daqui a pouco, se persistir chame a assistência.",
+         });
+      }
     } else {
       throw new TRPCError({
          code: "BAD_REQUEST",
-         message: "Você não está em uma localização registrada",
+         message: "Parece que você não está em uma localização registrada",
        });
     }
   }),
