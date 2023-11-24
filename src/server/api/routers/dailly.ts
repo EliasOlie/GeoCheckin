@@ -26,10 +26,7 @@ export const daillyRouter = createTRPCRouter({
           }
         })
       } catch (error) {
-          throw new TRPCError({
-           code: "BAD_REQUEST",
-           message: "Tente novamente daqui a pouco, se persistir chame a assistência.",
-         });
+        return null
       }
     } else {
       throw new TRPCError({
