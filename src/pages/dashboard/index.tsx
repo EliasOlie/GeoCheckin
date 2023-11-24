@@ -26,9 +26,10 @@ export default function Dashboard() {
       })
     },
     onError: (err) => {
+      alert(err.message)
       toast({
         title: "Ops parece que algo deu errado",
-        description: err.message,
+        description: "Ops",
         variant: "destructive"
       })
     }
