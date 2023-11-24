@@ -25,7 +25,8 @@ export default function Dashboard() {
         description: "Você pode prosseguir!"
       })
     },
-    onError: () => {
+    onError: (err) => {
+      alert(err.message)
       toast({
         title: "Ops parece que algo deu errado",
         description: "Tente novamente, se persistir, chame o suporte",
