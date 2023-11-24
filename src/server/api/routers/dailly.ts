@@ -21,7 +21,7 @@ export const daillyRouter = createTRPCRouter({
     if(isInRange(instalacao.latitude, instalacao.longitude, input.latitude, input.longitude, instalacao.threshold)) {
          await ctx.db.checkin.create({
            data: {
-             userId: ctx.session.user.id
+             userId: parseInt(ctx.session.user.id.toString())
           }
         })
     } else {
