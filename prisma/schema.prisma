@@ -31,6 +31,8 @@ model Instalation {
     latitude  Float
     longitude Float
     threshold Float
+    checkins Checkin[]
+    checkouts Checkout[]
 }
 
 model Checkin {
@@ -38,6 +40,8 @@ model Checkin {
     userId    Int
     timestamp DateTime @default(now())
     user      User     @relation(references: [id], fields: [userId])
+    instalationName String
+    instalation Instalation @relation(references: [nome], fields: [instalationName])
 }
 
 model Checkout {
@@ -45,6 +49,9 @@ model Checkout {
     userId    Int
     timestamp DateTime @default(now())
     user      User     @relation(references: [id], fields: [userId])
+    instalationName String
+    instalation Instalation @relation(references: [nome], fields: [instalationName])
+
 }
 
 model VerificationToken {

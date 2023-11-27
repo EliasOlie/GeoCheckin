@@ -58,14 +58,6 @@ export default function Dashboard() {
           <h2 className="text-xl font-bold">Olá {getUserQuery?.name} 👋</h2>
           <Button className="bg-red-500" onClick={() => signOut()}>Sair</Button>
         </div>
-        <Button
-          onClick={() =>
-            alert(
-              `Lat: ${location?.coords.latitude} Lon: ${location?.coords.longitude}`,
-            )}
-        >
-          Localização
-        </Button>
         <div className="max-w-[50vw] mx-auto mt-4 border-2 border-black">
           {location !== undefined && (
             <QrReader
