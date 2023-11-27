@@ -3,7 +3,7 @@ import * as z from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { isInRange } from "@/utils/geo";
 import { TRPCError } from "@trpc/server";
-import { Instalation } from "@prisma/client";
+import type { Instalation } from "@prisma/client";
 
 export const daillyRouter = createTRPCRouter({
   /*
@@ -42,7 +42,7 @@ export const daillyRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const results = await ctx.db.$queryRaw<Instalation[]>`
+      const results: Instalation[] = await ctx.db.$queryRaw<Instalation[]>`
       SELECT *, (
       6371 * acos(
         cos(radians(${input.latitude})) * cos(radians(latitude)) *
@@ -89,7 +89,7 @@ export const daillyRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const results = await ctx.db.$queryRaw<Instalation[]`
+      const results = await ctx.db.$queryRaw<Instalation[]>`
       SELECT *, (
       6371 * acos(
         cos(radians(${input.latitude})) * cos(radians(latitude)) *
