@@ -53,39 +53,43 @@ export default function Dashboard() {
         <meta name="description" content="Faça checkin!" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="min-w-full min-h-screen">
-        <div className="flex items-center justify-between min-w-full px-4 mt-4">
-          <h2 className="text-xl font-bold">Olá {getUserQuery?.name} 👋</h2>
-          <Button className="bg-red-500" onClick={() => signOut()}>Sair</Button>
-        </div>
-        <div className="max-w-[50vw] mx-auto mt-4 border-2 border-black">
-          {location !== undefined && (
-            <QrReader
-              onResult={(resultado, error) => {
-                if (!!resultado) {
-                  if (resultado.getText() === "checkin") {
-                    checkIn.mutate({
-                      longitude: location.coords.longitude,
-                      latitude: location.coords.latitude,
-                    });
-                  } else if (resultado.getText() === "checkout") {
-                    checkOut.mutate({
-                      longitude: location.coords.longitude,
-                      latitude: location.coords.latitude,
-                    });
+      <main className="min-w-full min-h-screen p-4">
+        <div className="bg-white h-[85vh] rounded-sm shadow p-2">
+          <div className="flex items-center justify-between min-w-full px-4 mt-4">
+            <h2 className="text-xl font-bold">Olá {getUserQuery?.name} 👋</h2>
+            <Button className="bg-red-500" onClick={() => signOut()}>
+              Sair
+            </Button>
+          </div>
+          <div className="max-w-[50vw] mx-auto mt-4 border-2 border-black">
+            {location !== undefined && (
+              <QrReader
+                onResult={(resultado, error) => {
+                  if (!!resultado) {
+                    if (resultado.getText() === "checkin") {
+                      checkIn.mutate({
+                        longitude: location.coords.longitude,
+                        latitude: location.coords.latitude,
+                      });
+                    } else if (resultado.getText() === "checkout") {
+                      checkOut.mutate({
+                        longitude: location.coords.longitude,
+                        latitude: location.coords.latitude,
+                      });
+                    }
+                    setData(resultado?.getText());
                   }
-                  setData(resultado?.getText());
-                }
 
-                if (!!error) {
-                  console.info(error);
-                }
-              }}
-              constraints={{ aspectRatio: 1 / 1, facingMode: "environment" }}
-            />
-          )}
+                  if (!!error) {
+                    console.info(error);
+                  }
+                }}
+                constraints={{ aspectRatio: 1 / 1, facingMode: "environment" }}
+              />
+            )}
+          </div>
+          {data}
         </div>
-        {data}
       </main>
       <BottomBar />
     </>
