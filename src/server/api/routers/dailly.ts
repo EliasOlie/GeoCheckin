@@ -42,7 +42,7 @@ export const daillyRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const results: Instalation[] = await ctx.db.$queryRaw`
+      const results = await ctx.db.$queryRaw<Instalation[]>`
       SELECT *, (
       6371 * acos(
         cos(radians(${input.latitude})) * cos(radians(latitude)) *
@@ -50,7 +50,7 @@ export const daillyRouter = createTRPCRouter({
         sin(radians(${input.latitude})) * sin(radians(latitude))
       )
     ) AS distance
-    FROM Instalation
+    FROM "Instalation"
     ORDER BY distance ASC
     `;
 
@@ -89,7 +89,7 @@ export const daillyRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const results: Instalation[] = await ctx.db.$queryRaw`
+      const results = await ctx.db.$queryRaw<Instalation[]`
       SELECT *, (
       6371 * acos(
         cos(radians(${input.latitude})) * cos(radians(latitude)) *
@@ -97,7 +97,7 @@ export const daillyRouter = createTRPCRouter({
         sin(radians(${input.latitude})) * sin(radians(latitude))
       )
     ) AS distance
-    FROM Instalation
+    FROM "Instalation"
     ORDER BY distance ASC
     `;
 
