@@ -3,17 +3,31 @@ import Head from "next/head";
 import { api } from "@/utils/api";
 import { useEffect } from "react";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 export default function ReportPage() {
-  const checkins = api.dailly.getUserMonthData.useMutation()
-  const loggedUser = api.user.getUser.useQuery().data
-  const user = api.user.getUserById.useMutation()
+  const checkins = api.dailly.getUserMonthData.useMutation();
+  const loggedUser = api.user.getUser.useQuery().data;
+  const user = api.user.getUserById.useMutation();
+  const users = api.user.getAllUsers.useQuery().data
 
   useEffect(() => {
-    if(loggedUser) {
-      user.mutate(loggedUser.id)
-      checkins.mutate(loggedUser.id)
+    if (loggedUser) {
+      user.mutate(loggedUser.id);
+      checkins.mutate(loggedUser.id);
     }
-  }, [loggedUser])
+  }, [loggedUser]);
+
+  const selectUser = (id: string) => {
+    user.mutate(parseInt(id))
+    checkins.mutate(parseInt(id))
+  }
 
   return (
     <>
@@ -23,7 +37,20 @@ export default function ReportPage() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        
+        { loggedUser?.role === "ADM" && (
+        <div className="min-w-full p-2">
+          <Select onValueChange={(id) => selectUser(id)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecionar Usuário" />
+            </SelectTrigger>
+            <SelectContent>
+              {users?.map((user) => (
+                <SelectItem key={user.id} value={user.id.toString()}>{user.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        )}
         <h1 className="min-w-full text-center text-xl font-semibold border-2 border-black">
           Relatório de horas mensais
         </h1>
@@ -54,14 +81,19 @@ export default function ReportPage() {
                 key={checkin.id}
                 className="flex w-[20vw] flex-2 items-center border-l-2  border-b-2 border-black"
               >
-                <p className="font-bold">Checkin</p>
+                <p className="font-bold">
+                  {checkin.tipo === "CHECKIN" ? "Checkin" : "Checkout"}
+                </p>
               </li>
               <li
                 key={checkin.id}
                 className="flex w-[20vw] flex-2 items-center justify-end border-l-2  border-b-2 border-black"
               >
                 <p className="font-bold">
-                  {new Date(checkin.timestamp).toLocaleDateString().substring(0, 5)}
+                  {new Date(checkin.timestamp).toLocaleDateString().substring(
+                    0,
+                    5,
+                  )}
                 </p>
               </li>
               <li
@@ -80,7 +112,9 @@ export default function ReportPage() {
         </ul>
 
         <div className="flex items-center justify-between border-b-2 border-x-2 border-black">
-          <p className="flex flex-1 border-r-2 border-black">Horas produzidas:</p>
+          <p className="flex flex-1 border-r-2 border-black">
+            Horas produzidas:
+          </p>
           <p className="flex flex-1 justify-end">0</p>
         </div>
         <div className="flex items-center justify-between border-x-2 border-b-2 border-black">
