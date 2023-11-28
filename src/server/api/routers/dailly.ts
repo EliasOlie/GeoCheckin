@@ -99,7 +99,7 @@ export const daillyRouter = createTRPCRouter({
       where: {
         timestamp: {
           lte: new Date(today.getFullYear(), today.getMonth() + 1, 0),
-          gte: new Date(today.getFullYear(), today.getMonth() + 1, 0)
+          gte: new Date(today.getFullYear(), today.getMonth(), 1)
         },
         userId: input,
       },
