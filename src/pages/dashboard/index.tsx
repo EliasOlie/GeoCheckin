@@ -26,6 +26,7 @@ export default function Dashboard() {
         title: "Ponto batido!",
         description: "Você pode prosseguir!",
       });
+      router.push("/dashboard/report")
     },
     onError: (err) => {
       toast({
@@ -35,7 +36,6 @@ export default function Dashboard() {
       });
     },
   });
-  const checkOut = api.dailly.checkOut.useMutation({});
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -72,11 +72,13 @@ export default function Dashboard() {
                       checkIn.mutate({
                         longitude: location.coords.longitude,
                         latitude: location.coords.latitude,
+                        tipo: "in"
                       });
                     } else if (resultado.getText() === "checkout") {
-                      checkOut.mutate({
+                      checkIn.mutate({
                         longitude: location.coords.longitude,
                         latitude: location.coords.latitude,
+                        tipo: "out"
                       });
                     }
                     setData(resultado?.getText());

@@ -79,7 +79,7 @@ export const userRouter = createTRPCRouter({
   getUserById: protectedProcedure
     .input(z.number())
     .mutation(async ({ctx, input}) => {
-    return ctx.db.user.findUnique({ where: { id: input }})
+    return ctx.db.user.findUnique({ where: { id: input }, include: { checkins: true } })
   }),
   getAllUsers: protectedProcedure.query(async ({ctx}) => {
     return ctx.db.user.findMany({ orderBy: { name: "asc" }})

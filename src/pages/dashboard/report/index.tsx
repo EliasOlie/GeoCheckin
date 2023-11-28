@@ -1,10 +1,19 @@
 import BottomBar from "@/components/BottomBar/BottomBar";
 import Head from "next/head";
 import { api } from "@/utils/api";
+import { useEffect } from "react";
 
 export default function ReportPage() {
-  const checkins = api.dailly.getMonthCheckins.useQuery().data;
-  const user = api.user.getUser.useQuery().data;
+  const checkins = api.dailly.getUserMonthData.useMutation()
+  const loggedUser = api.user.getUser.useQuery().data
+  const user = api.user.getUserById.useMutation()
+
+  useEffect(() => {
+    if(loggedUser) {
+      user.mutate(loggedUser.id)
+      checkins.mutate(loggedUser.id)
+    }
+  }, [loggedUser])
 
   return (
     <>
@@ -14,6 +23,7 @@ export default function ReportPage() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
+        
         <h1 className="min-w-full text-center text-xl font-semibold border-2 border-black">
           Relatório de horas mensais
         </h1>
@@ -32,7 +42,7 @@ export default function ReportPage() {
               <p className="font-bold">Hora</p>
             </li>
           </div>
-          {checkins?.map((checkin) => (
+          {checkins?.data?.map((checkin) => (
             <div key={undefined} className="flex">
               <li
                 key={checkin.id}
@@ -70,14 +80,14 @@ export default function ReportPage() {
         </ul>
 
         <div className="flex items-center justify-between border-b-2 border-x-2 border-black">
-          <p className="flex flex-1 border-r-2 border-black">Horas feitas:</p>
+          <p className="flex flex-1 border-r-2 border-black">Horas produzidas:</p>
           <p className="flex flex-1 justify-end">0</p>
         </div>
         <div className="flex items-center justify-between border-x-2 border-b-2 border-black">
           <p className="flex flex-1 border-r-2 border-black">
-            Horas Combinadas:
+            Horas programadas:
           </p>
-          <p className="flex flex-1 justify-end">{user?.monthlyHours}</p>
+          <p className="flex flex-1 justify-end">{user?.data?.monthlyHours}</p>
         </div>
       </main>
       <BottomBar />

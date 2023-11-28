@@ -39,6 +39,7 @@ export const daillyRouter = createTRPCRouter({
       z.object({
         latitude: z.number(),
         longitude: z.number(),
+        tipo: z.string()
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -70,7 +71,8 @@ export const daillyRouter = createTRPCRouter({
         await ctx.db.checkin.create({
           data: {
             userId: parseInt(ctx.session.user.id.toString()),
-            instalationName: instalacao.nome
+            instalationName: instalacao.nome,
+            tipo: input.tipo === "in"? "CHECKIN" : "CHECKOUT"
           },
         });
       } else {
@@ -81,57 +83,31 @@ export const daillyRouter = createTRPCRouter({
       }
     }),
 
-  checkOut: protectedProcedure
-    .input(
-      z.object({
-        latitude: z.number(),
-        longitude: z.number(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const results = await ctx.db.$queryRaw<Instalation[]>`
-      SELECT *, (
-      6371 * acos(
-        cos(radians(${input.latitude})) * cos(radians(latitude)) *
-        cos(radians(longitude) - radians(${input.longitude})) +
-        sin(radians(${input.latitude})) * sin(radians(latitude))
-      )
-    ) AS distance
-    FROM "Instalation"
-    ORDER BY distance ASC
-    `;
-
-      const instalacao = results[0]
-      if (!instalacao) {
-        return null;
-      }
-      if (
-        isInRange(
-          instalacao.latitude,
-          instalacao.longitude,
-          input.latitude,
-          input.longitude,
-          instalacao.threshold,
-        )
-      ) {
-        await ctx.db.checkout.create({
-          data: {
-            userId: parseInt(ctx.session.user.id.toString()),
-            instalationName: instalacao.nome
-          },
-        });
-      } else {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Parece que você não está em uma localização registrada",
-        });
-      }
-    }),
-  getMonthCheckins: protectedProcedure.query(({ ctx }) => {
+ getMonthCheckins: protectedProcedure.query(({ ctx }) => {
     return ctx.db.checkin.findMany({
       where: {
         userId: parseInt(ctx.session.user.id.toString()),
       },
     });
   }),
+  getUserMonthData: protectedProcedure
+  .input(z.number())
+  .mutation(async ({ ctx, input }) => {
+    const today = new Date()
+
+    return await ctx.db.checkin.findMany({
+      where: {
+        timestamp: {
+          lte: new Date(today.getFullYear(), today.getMonth() + 1, 0),
+          gte: new Date(today.getFullYear(), today.getMonth() + 1, 0)
+        },
+        userId: input,
+      },
+      orderBy: {
+        timestamp: "asc"
+      }
+    })
+
+    
+  })
 });
