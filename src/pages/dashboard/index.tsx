@@ -9,6 +9,7 @@ import BottomBar from "@/components/BottomBar/BottomBar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { GeolocationProps } from "@/utils/interfaces";
+import CreateUserDialog from "@/components/Dialogs/CreateUserDialog";
 
 export default function Dashboard() {
   const { status } = useSession();
@@ -88,7 +89,12 @@ export default function Dashboard() {
               />
             )}
           </div>
-          {data}
+          {getUserQuery?.role === "ADM" && (
+            <div className="flex min-w-[50vw] mx-auto mt-4 px-2 items-center justify-between">
+              <CreateUserDialog/>
+              <Button>Cadastrar Unidade</Button>
+            </div>
+          )}
         </div>
       </main>
       <BottomBar />
