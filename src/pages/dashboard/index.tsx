@@ -93,7 +93,7 @@ export default function Dashboard() {
           {getUserQuery?.role === "ADM" && (
             <div className="flex min-w-[50vw] mx-auto mt-4 px-2 items-center justify-between">
               <CreateUserDialog/>
-              {location && <CreateInstalationDialog latitude={location.coords.latitude} longitude={location.coords.longitude}/>
+              {location && <CreateInstalationDialog latitude={location?.coords.latitude} longitude={location?.coords.longitude}/>
  }
             </div>
           )}

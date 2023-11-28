@@ -37,6 +37,7 @@ export default function CreateInstalationDialog(props: CreateInstalationProps) {
         title: "Localização Cadastrada",
         description: "Agora podem bater ponto aqui!",
       });
+      setOpen(state => !state)
     },
     onError: (err) => {
       toast({
@@ -86,7 +87,9 @@ export default function CreateInstalationDialog(props: CreateInstalationProps) {
                 </FormItem>
               )}
             />
-            <Button type="submit">Submit</Button>
+            <div className="flex items-center justify-end">
+              <Button type="submit">Cadastrar</Button>
+            </div>
           </form>
         </Form>
       </DialogContent>

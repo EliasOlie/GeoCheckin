@@ -19,16 +19,16 @@ export default function ReportPage() {
         </h1>
         <ul className="flex flex-col">
           <div className="flex min-w-full">
-            <li className="flex w-[40vw] items-center border-l-2 border-b-2 border-black">
+            <li className="flex w-[40vw] items-center justify-center border-l-2 border-b-2 border-black">
               <p className="font-bold">Local</p>
             </li>
-            <li className="flex w-[20vw] items-center border-l-2  border-b-2 border-black">
+            <li className="flex w-[20vw] items-center justify-center border-l-2  border-b-2 border-black">
               <p className="font-bold">Tipo</p>
             </li>
-            <li className="flex w-[20vw] items-center border-l-2  border-b-2 border-black">
+            <li className="flex w-[20vw] items-center justify-center border-l-2  border-b-2 border-black">
               <p className="font-bold">Data</p>
             </li>
-            <li className="flex w-[20vw] items-center border-x-2  border-b-2 border-black">
+            <li className="flex w-[20vw] items-center justify-center border-x-2  border-b-2 border-black">
               <p className="font-bold">Hora</p>
             </li>
           </div>
@@ -48,15 +48,15 @@ export default function ReportPage() {
               </li>
               <li
                 key={checkin.id}
-                className="flex w-[20vw] flex-2 items-center border-l-2  border-b-2 border-black"
+                className="flex w-[20vw] flex-2 items-center justify-end border-l-2  border-b-2 border-black"
               >
                 <p className="font-bold">
-                  {new Date(checkin.timestamp).toLocaleDateString()}
+                  {new Date(checkin.timestamp).toLocaleDateString().substring(0, 5)}
                 </p>
               </li>
               <li
                 key={checkin.id}
-                className="flex w-[20vw] flex-2 items-center border-x-2  border-b-2 border-black"
+                className="flex w-[20vw] flex-2 items-center justify-end border-x-2  border-b-2 border-black"
               >
                 <p className="font-bold">
                   {new Date(checkin.timestamp).toLocaleTimeString().substring(
