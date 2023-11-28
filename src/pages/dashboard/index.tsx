@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { GeolocationProps } from "@/utils/interfaces";
 import CreateUserDialog from "@/components/Dialogs/CreateUserDialog";
+import CreateInstalationDialog from "@/components/Dialogs/CreateInstalationDialog";
 
 export default function Dashboard() {
   const { status } = useSession();
@@ -92,7 +93,8 @@ export default function Dashboard() {
           {getUserQuery?.role === "ADM" && (
             <div className="flex min-w-[50vw] mx-auto mt-4 px-2 items-center justify-between">
               <CreateUserDialog/>
-              <Button>Cadastrar Unidade</Button>
+              {location && <CreateInstalationDialog latitude={location.coords.latitude} longitude={location.coords.longitude}/>
+ }
             </div>
           )}
         </div>
