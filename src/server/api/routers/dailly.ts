@@ -65,7 +65,11 @@ export const daillyRouter = createTRPCRouter({
           id: parseInt(ctx.session.user.id.toString()),
         },
         include: {
-          checkins: true,
+          checkins: {
+          orderBy: {
+            timestamp: "asc"
+          }
+        },
         },
       });
 
