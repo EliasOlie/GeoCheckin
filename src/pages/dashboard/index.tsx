@@ -14,7 +14,6 @@ import CreateInstalationDialog from "@/components/Dialogs/CreateInstalationDialo
 
 export default function Dashboard() {
   const { status } = useSession();
-  const [data, setData] = useState<string>("Sem resultado");
   const [location, setLocation] = useState<GeolocationProps>();
   const { toast } = useToast();
   const router = useRouter();
@@ -26,7 +25,7 @@ export default function Dashboard() {
         title: "Ponto batido!",
         description: "Você pode prosseguir!",
       });
-      router.push("/dashboard/report")
+      router.push("/dashboard/report");
     },
     onError: (err) => {
       toast({
@@ -55,14 +54,14 @@ export default function Dashboard() {
         <meta name="description" content="Faça checkin!" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="min-w-full min-h-screen p-4">
-        <div className="bg-white h-[85vh] rounded-sm shadow p-2">
-          <div className="flex items-center justify-between min-w-full px-4 mt-4">
-            <h2 className="text-xl font-bold">Olá {getUserQuery?.name} 👋</h2>
-            <Button className="bg-red-500" onClick={() => signOut()}>
-              Sair
-            </Button>
-          </div>
+      <main className="min-w-full min-h-screen ">
+        <div className="flex items-center justify-between min-w-full p-4">
+          <h2 className="text-xl font-bold">Olá {getUserQuery?.name} 👋</h2>
+          <Button className="bg-red-500" onClick={() => signOut()}>
+            Sair
+          </Button>
+        </div>
+        <div className="bg-white h-[85vh] rounded-2xl shadow p-2">
           <div className="max-w-[50vw] mx-auto mt-4 border-2 border-black">
             {location !== undefined && (
               <QrReader
@@ -72,16 +71,15 @@ export default function Dashboard() {
                       checkIn.mutate({
                         longitude: location.coords.longitude,
                         latitude: location.coords.latitude,
-                        tipo: "in"
+                        tipo: "in",
                       });
                     } else if (resultado.getText() === "checkout") {
                       checkIn.mutate({
                         longitude: location.coords.longitude,
                         latitude: location.coords.latitude,
-                        tipo: "out"
+                        tipo: "out",
                       });
                     }
-                    setData(resultado?.getText());
                   }
 
                   if (!!error) {
@@ -94,9 +92,13 @@ export default function Dashboard() {
           </div>
           {getUserQuery?.role === "ADM" && (
             <div className="flex min-w-[50vw] mx-auto mt-4 px-2 items-center justify-between">
-              <CreateUserDialog/>
-              {location && <CreateInstalationDialog latitude={location?.coords.latitude} longitude={location?.coords.longitude}/>
- }
+              <CreateUserDialog />
+              {location && (
+                <CreateInstalationDialog
+                  latitude={location?.coords.latitude}
+                  longitude={location?.coords.longitude}
+                />
+              )}
             </div>
           )}
         </div>
