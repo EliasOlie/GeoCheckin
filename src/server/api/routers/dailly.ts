@@ -39,7 +39,7 @@ export const daillyRouter = createTRPCRouter({
       z.object({
         latitude: z.number(),
         longitude: z.number(),
-        tipo: z.string()
+        tipo: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -55,35 +55,67 @@ export const daillyRouter = createTRPCRouter({
     ORDER BY distance ASC
     `;
 
-      const instalacao = results[0]
+      const instalacao = results[0];
       if (!instalacao) {
         return null;
       }
-      if (
-        isInRange(
-          instalacao.latitude,
-          instalacao.longitude,
-          input.latitude,
-          input.longitude,
-          instalacao.threshold,
-        )
-      ) {
-        await ctx.db.checkin.create({
-          data: {
-            userId: parseInt(ctx.session.user.id.toString()),
-            instalationName: instalacao.nome,
-            tipo: input.tipo === "in"? "CHECKIN" : "CHECKOUT"
-          },
-        });
-      } else {
+
+      const lastUserCheckin = await ctx.db.user.findUnique({
+        where: {
+          id: ctx.session.user.id,
+        },
+        include: {
+          checkins: true,
+        },
+      });
+
+      if (!lastUserCheckin) {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Parece que você não está em uma localização registrada",
+          code: "CONFLICT",
+          message:
+            "Não conseguimos encontrar seus dados, tente fazer o login novamente e scanear o código",
         });
+      }
+
+      if (
+        lastUserCheckin.checkins[0] &&
+        Math.abs(
+          lastUserCheckin.checkins[0].timestamp.getTime() -
+            new Date().getTime(),
+        ) /
+          36e5 <=
+          0.25
+      ) {
+        return null;
+      }
+
+      if (lastUserCheckin.checkins) {
+        if (
+          isInRange(
+            instalacao.latitude,
+            instalacao.longitude,
+            input.latitude,
+            input.longitude,
+            instalacao.threshold,
+          )
+        ) {
+          await ctx.db.checkin.create({
+            data: {
+              userId: parseInt(ctx.session.user.id.toString()),
+              instalationName: instalacao.nome,
+              tipo: input.tipo === "in" ? "CHECKIN" : "CHECKOUT",
+            },
+          });
+        } else {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Parece que você não está em uma localização registrada",
+          });
+        }
       }
     }),
 
- getMonthCheckins: protectedProcedure.query(({ ctx }) => {
+  getMonthCheckins: protectedProcedure.query(({ ctx }) => {
     return ctx.db.checkin.findMany({
       where: {
         userId: parseInt(ctx.session.user.id.toString()),
@@ -91,23 +123,21 @@ export const daillyRouter = createTRPCRouter({
     });
   }),
   getUserMonthData: protectedProcedure
-  .input(z.number())
-  .mutation(async ({ ctx, input }) => {
-    const today = new Date()
+    .input(z.number())
+    .mutation(async ({ ctx, input }) => {
+      const today = new Date();
 
-    return await ctx.db.checkin.findMany({
-      where: {
-        timestamp: {
-          lte: new Date(today.getFullYear(), today.getMonth() + 1, 0),
-          gte: new Date(today.getFullYear(), today.getMonth(), 1)
+      return await ctx.db.checkin.findMany({
+        where: {
+          timestamp: {
+            lte: new Date(today.getFullYear(), today.getMonth() + 1, 0),
+            gte: new Date(today.getFullYear(), today.getMonth(), 1),
+          },
+          userId: input,
         },
-        userId: input,
-      },
-      orderBy: {
-        timestamp: "asc"
-      }
-    })
-
-    
-  })
+        orderBy: {
+          timestamp: "asc",
+        },
+      });
+    }),
 });

@@ -1,7 +1,7 @@
 import BottomBar from "@/components/BottomBar/BottomBar";
 import Head from "next/head";
 import { api } from "@/utils/api";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Select,
@@ -15,19 +15,42 @@ export default function ReportPage() {
   const checkins = api.dailly.getUserMonthData.useMutation();
   const loggedUser = api.user.getUser.useQuery().data;
   const user = api.user.getUserById.useMutation();
-  const users = api.user.getAllUsers.useQuery().data
+  const users = api.user.getAllUsers.useQuery().data;
+  const [horasProduzidas, setHorasProduzidas] = useState<number | undefined>(0);
 
   useEffect(() => {
     if (loggedUser) {
       user.mutate(loggedUser.id);
       checkins.mutate(loggedUser.id);
+      const totalHorasProduzidas = checkins.data?.reduce((total, checkin, index) => {
+        const checkout = checkins.data?.[index + 1];
+    
+        if (checkin.tipo === 'CHECKIN' && checkout && checkout.tipo === 'CHECKOUT') {
+          const diffMilliseconds = new Date(checkout.timestamp).getTime() - new Date(checkin.timestamp).getTime()
+          return total + diffMilliseconds / 36e5;
+        }
+    
+        return total;
+      }, 0);
+      setHorasProduzidas(totalHorasProduzidas)
     }
   }, [loggedUser]);
 
   const selectUser = (id: string) => {
-    user.mutate(parseInt(id))
-    checkins.mutate(parseInt(id))
-  }
+    user.mutate(parseInt(id));
+    checkins.mutate(parseInt(id));
+    const totalHorasProduzidas = checkins.data?.reduce((total, checkin, index) => {
+      const checkout = checkins.data?.[index + 1];
+  
+      if (checkin.tipo === 'CHECKIN' && checkout && checkout.tipo === 'CHECKOUT') {
+        const diffMilliseconds = new Date(checkout.timestamp).getTime() - new Date(checkin.timestamp).getTime()
+        return total + diffMilliseconds / 36e5;
+      }
+  
+      return total;
+    }, 0);
+    setHorasProduzidas(totalHorasProduzidas)
+  };
 
   return (
     <>
@@ -37,19 +60,21 @@ export default function ReportPage() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        { loggedUser?.role === "ADM" && (
-        <div className="min-w-full p-2">
-          <Select onValueChange={(id) => selectUser(id)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecionar Usuário" />
-            </SelectTrigger>
-            <SelectContent>
-              {users?.map((user) => (
-                <SelectItem key={user.id} value={user.id.toString()}>{user.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {loggedUser?.role === "ADM" && (
+          <div className="min-w-full p-2">
+            <Select onValueChange={(id) => selectUser(id)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecionar Usuário" />
+              </SelectTrigger>
+              <SelectContent>
+                {users?.map((user) => (
+                  <SelectItem key={user.id} value={user.id.toString()}>
+                    {user.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         )}
         <h1 className="min-w-full text-center text-xl font-semibold border-2 border-black">
           Relatório de horas mensais
@@ -115,7 +140,7 @@ export default function ReportPage() {
           <p className="flex flex-1 border-r-2 border-black">
             Horas produzidas:
           </p>
-          <p className="flex flex-1 justify-end">0</p>
+          <p className="flex flex-1 justify-end">{horasProduzidas?.toFixed(2)}</p>
         </div>
         <div className="flex items-center justify-between border-x-2 border-b-2 border-black">
           <p className="flex flex-1 border-r-2 border-black">
