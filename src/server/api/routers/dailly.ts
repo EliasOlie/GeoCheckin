@@ -62,7 +62,7 @@ export const daillyRouter = createTRPCRouter({
 
       const lastUserCheckin = await ctx.db.user.findUnique({
         where: {
-          id: ctx.session.user.id,
+          id: parseInt(ctx.session.user.id.toString()),
         },
         include: {
           checkins: true,
