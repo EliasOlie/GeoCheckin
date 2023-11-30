@@ -10,46 +10,72 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Checkin } from "@prisma/client";
 
 export default function ReportPage() {
-  const checkins = api.dailly.getUserMonthData.useMutation();
+  const checkins = api.dailly.getUserMonthData.useMutation({
+    onSuccess(data, variables, context) {
+        calcularHorasProduzidas(data)
+    },
+  });
   const loggedUser = api.user.getUser.useQuery().data;
   const user = api.user.getUserById.useMutation();
   const users = api.user.getAllUsers.useQuery().data;
   const [horasProduzidas, setHorasProduzidas] = useState<number | undefined>(0);
+  const [data, setData] = useState<Date>(new Date());
+  const [selectedUserId, setSelectedUserId] = useState<number>(0);
+
+  const calcularHorasProduzidas = (data: Checkin[]) => {
+    const totalHorasProduzidas = data.reduce(
+      (total, checkin, index) => {
+        const checkout = data[index + 1];
+
+        if (
+          checkin.tipo === "CHECKIN" && checkout &&
+          checkout.tipo === "CHECKOUT"
+        ) {
+          const diffMilliseconds = new Date(checkout.timestamp).getTime() -
+            new Date(checkin.timestamp).getTime();
+          return total + diffMilliseconds / 36e5;
+        }
+
+        return total;
+      },
+      0,
+    );
+    setHorasProduzidas(totalHorasProduzidas);
+  };
 
   useEffect(() => {
     if (loggedUser) {
       user.mutate(loggedUser.id);
-      checkins.mutate(loggedUser.id);
-      const totalHorasProduzidas = checkins.data?.reduce((total, checkin, index) => {
-        const checkout = checkins.data?.[index + 1];
-    
-        if (checkin.tipo === 'CHECKIN' && checkout && checkout.tipo === 'CHECKOUT') {
-          const diffMilliseconds = new Date(checkout.timestamp).getTime() - new Date(checkin.timestamp).getTime()
-          return total + diffMilliseconds / 36e5;
-        }
-    
-        return total;
-      }, 0);
-      setHorasProduzidas(totalHorasProduzidas)
+      setSelectedUserId(loggedUser.id);
+      checkins.mutate({ userId: loggedUser.id });
     }
   }, [loggedUser]);
 
   const selectUser = (id: string) => {
     user.mutate(parseInt(id));
-    checkins.mutate(parseInt(id));
-    const totalHorasProduzidas = checkins.data?.reduce((total, checkin, index) => {
-      const checkout = checkins.data?.[index + 1];
-  
-      if (checkin.tipo === 'CHECKIN' && checkout && checkout.tipo === 'CHECKOUT') {
-        const diffMilliseconds = new Date(checkout.timestamp).getTime() - new Date(checkin.timestamp).getTime()
-        return total + diffMilliseconds / 36e5;
+    setSelectedUserId(parseInt(id));
+    checkins.mutate({ userId: parseInt(id) });
+  };
+
+  const selectData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setData((prevState) => {
+      if (loggedUser && loggedUser?.role !== "ADM") {
+        checkins.mutate({
+          userId: loggedUser.id,
+          date: new Date(e.target.value.replace(/-/g, '\/')),
+        });
+      } else {
+        checkins.mutate({
+          userId: selectedUserId,
+          date: new Date(e.target.value.replace(/-/g, '\/')),
+        });
       }
-  
-      return total;
-    }, 0);
-    setHorasProduzidas(totalHorasProduzidas)
+      return new Date(e.target.value.replace(/-/g, '\/'));
+    });
   };
 
   return (
@@ -61,8 +87,8 @@ export default function ReportPage() {
       </Head>
       <main>
         {loggedUser?.role === "ADM" && (
-          <div className="min-w-full p-2">
-            <Select onValueChange={(id) => selectUser(id)}>
+          <div className="min-w-full p-2 flex gap-2">
+            <Select onValueChange={(id) => selectUser(id)} defaultValue={selectedUserId.toString()}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecionar Usuário" />
               </SelectTrigger>
@@ -74,6 +100,11 @@ export default function ReportPage() {
                 ))}
               </SelectContent>
             </Select>
+            <Input
+              value={data.toISOString().substring(0, 10)}
+              type="date"
+              onChange={selectData}
+            />
           </div>
         )}
         <h1 className="min-w-full text-center text-xl font-semibold border-2 border-black">
@@ -97,13 +128,13 @@ export default function ReportPage() {
           {checkins?.data?.map((checkin) => (
             <div key={undefined} className="flex">
               <li
-                key={checkin.id}
+                key={"instalation-" + checkin.id}
                 className="flex w-[40vw] flex-1 items-center border-l-2  border-b-2 border-black"
               >
                 <p className="font-bold">{checkin.instalationName}</p>
               </li>
               <li
-                key={checkin.id}
+                key={"tipo-" + checkin.id}
                 className="flex w-[20vw] flex-2 items-center border-l-2  border-b-2 border-black"
               >
                 <p className="font-bold">
@@ -111,7 +142,7 @@ export default function ReportPage() {
                 </p>
               </li>
               <li
-                key={checkin.id}
+                key={"data-" + checkin.id}
                 className="flex w-[20vw] flex-2 items-center justify-end border-l-2  border-b-2 border-black"
               >
                 <p className="font-bold">
@@ -122,7 +153,7 @@ export default function ReportPage() {
                 </p>
               </li>
               <li
-                key={checkin.id}
+                key={"hora-" + checkin.id}
                 className="flex w-[20vw] flex-2 items-center justify-end border-x-2  border-b-2 border-black"
               >
                 <p className="font-bold">
@@ -140,7 +171,9 @@ export default function ReportPage() {
           <p className="flex flex-1 border-r-2 border-black">
             Horas produzidas:
           </p>
-          <p className="flex flex-1 justify-end">{horasProduzidas?.toFixed(2)}</p>
+          <p className="flex flex-1 justify-end">
+            {horasProduzidas?.toFixed(2)}
+          </p>
         </div>
         <div className="flex items-center justify-between border-x-2 border-b-2 border-black">
           <p className="flex flex-1 border-r-2 border-black">

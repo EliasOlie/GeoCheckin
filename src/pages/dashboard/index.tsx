@@ -54,7 +54,7 @@ export default function Dashboard() {
         <meta name="description" content="Faça checkin!" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="min-w-full min-h-screen ">
+      <main className="min-w-full min-h-screen px-2 ">
         <div className="flex items-center justify-between min-w-full p-4">
           <h2 className="text-xl font-bold">Olá {getUserQuery?.name} 👋</h2>
           <Button className="bg-red-500" onClick={() => signOut()}>
@@ -62,6 +62,8 @@ export default function Dashboard() {
           </Button>
         </div>
         <div className="bg-white h-[85vh] rounded-2xl shadow p-2">
+          <h3 className="font-bold text-lg w-full text-center">Escanear QRCode</h3>
+
           <div className="max-w-[50vw] mx-auto mt-4 border-2 border-black">
             {location !== undefined && (
               <QrReader
@@ -91,7 +93,7 @@ export default function Dashboard() {
             )}
           </div>
           {getUserQuery?.role === "ADM" && (
-            <div className="flex min-w-[50vw] mx-auto mt-4 px-2 items-center justify-between">
+            <div className="flex min-w-[50vw] mx-auto mt-4 gap-4 px-2 items-center justify-center">
               <CreateUserDialog />
               {location && (
                 <CreateInstalationDialog

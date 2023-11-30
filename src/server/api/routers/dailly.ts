@@ -90,7 +90,10 @@ export const daillyRouter = createTRPCRouter({
           36e5 <=
           0.25
       ) {
-        return null;
+        throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Ponto já foi batido, não tentar novamente pelos próximos 15 minutos",
+          });
       }
 
       if (lastUserCheckin.checkins) {
@@ -127,17 +130,21 @@ export const daillyRouter = createTRPCRouter({
     });
   }),
   getUserMonthData: protectedProcedure
-    .input(z.number())
+    .input(
+    z.object({
+      userId: z.number(),
+      date: z.date().optional()
+    }))
     .mutation(async ({ ctx, input }) => {
       const today = new Date();
 
       return await ctx.db.checkin.findMany({
         where: {
           timestamp: {
-            lte: new Date(today.getFullYear(), today.getMonth() + 1, 0),
-            gte: new Date(today.getFullYear(), today.getMonth(), 1),
+            lte: input.date? new Date(input.date.getFullYear(), input.date.getMonth() + 1) : new Date(today.getFullYear(), today.getMonth() + 1),
+            gte: input.date? new Date(input.date.getFullYear(), input.date.getMonth(), 1) : new Date(today.getFullYear(), today.getMonth(), 1),
           },
-          userId: input,
+          userId: input.userId,
         },
         orderBy: {
           timestamp: "asc",
