@@ -15,6 +15,7 @@ import CreateInstalationDialog from "@/components/Dialogs/CreateInstalationDialo
 export default function Dashboard() {
   const { status } = useSession();
   const [location, setLocation] = useState<GeolocationProps>();
+  const [stopScan, setStopScan] = useState<boolean>(false)
   const { toast } = useToast();
   const router = useRouter();
   const getUserQuery = api.user.getUser.useQuery().data;
@@ -33,6 +34,7 @@ export default function Dashboard() {
         description: err.message,
         variant: "destructive",
       });
+      setStopScan(false)
     },
   });
 
@@ -65,11 +67,11 @@ export default function Dashboard() {
           <h3 className="font-bold text-lg w-full text-center">Escanear QRCode</h3>
 
           <div className="max-w-[50vw] mx-auto mt-4 border-2 border-black">
-            {location !== undefined && (
+            {(location !== undefined && !stopScan) && (
               <QrReader
                 onResult={(resultado, error) => {
+                  setStopScan(true)
                   if (!!resultado) {
-                    setTimeout(() => {toast({title: "Carregando...", description: "Estamos processando a requisição"})}, 1000)
                     if (resultado.getText() === "checkin") {
                       checkIn.mutate({
                         longitude: location.coords.longitude,
