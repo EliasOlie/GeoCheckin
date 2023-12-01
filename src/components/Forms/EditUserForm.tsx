@@ -29,11 +29,12 @@ import { api } from "@/utils/api"
 import { useState } from "react"
 import * as z from "zod"
 import { useToast } from "../ui/use-toast"
+import UserDialog from "../Dialogs/UsersDialog"
 
 const updateUserFormSchema = z.object({
-  name: z.string().min(1, "Nome requerido"),
-  contact: z.string().min(11, "Contato requerido!").max(11, "Numero muito grande"),
-  password: z.string().min(1, "Senha requerida")
+  name: z.string().optional(),
+  contact: z.string().max(11, "Número muito grande!").optional(),
+  password: z.string().optional()
 })
 
 export default function EditUserForm() {
@@ -130,10 +131,20 @@ export default function EditUserForm() {
               </FormItem>
             )}
           />
-          <div className="flex justify-end">
-            <Button type="submit">Alterar dados</Button>
-          </div>
-        </form>
+          {user?.data?.role === "ADM" && (
+            <div className="flex justify-between">
+              {user?.data?.role === "ADM" && (
+                <UserDialog/> 
+              )}
+              <Button type="submit">Alterar dados</Button>
+            </div>
+          )}
+          {user?.data?.role === "USR" && (
+            <div className="flex justify-end">
+              <Button type="submit">Alterar dados</Button>
+            </div>
+          )}
+                 </form>
       </Form>
     </CardContent>
 </Card>

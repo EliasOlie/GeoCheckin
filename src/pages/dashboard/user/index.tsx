@@ -3,7 +3,6 @@ import EditUserForm from "@/components/Forms/EditUserForm";
 import Head from "next/head";
 
 export default function UserPage() {
-
   return(
     <>
       <Head>

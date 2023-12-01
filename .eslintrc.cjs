@@ -26,6 +26,7 @@ const config = {
     "@react-hooks/exhaustive-deps": "off",
     "@typescript-eslint/prefer-optional-chain": "off",
     "@typescript-eslint/no-empty-interface": "off",
+    "@typescript-eslint/prefer-nullish-coalescing": "off",
 
 
     "@typescript-eslint/consistent-type-imports": [
