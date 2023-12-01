@@ -62,7 +62,7 @@ export default function ReportPage() {
   };
 
   const selectData = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setData((prevState) => {
+    setData((_) => {
       if (loggedUser && loggedUser?.role !== "ADM") {
         checkins.mutate({
           userId: loggedUser.id,
@@ -88,7 +88,7 @@ export default function ReportPage() {
       <main>
         {loggedUser?.role === "ADM" && (
           <div className="min-w-full p-2 flex gap-2">
-            <Select onValueChange={(id) => selectUser(id)} defaultValue={selectedUserId.toString()}>
+            <Select onValueChange={(id) => selectUser(id)} defaultValue={loggedUser.id.toString()}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecionar Usuário" />
               </SelectTrigger>

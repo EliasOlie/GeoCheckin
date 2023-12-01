@@ -69,6 +69,7 @@ export default function Dashboard() {
               <QrReader
                 onResult={(resultado, error) => {
                   if (!!resultado) {
+                    setTimeout(() => {toast({title: "Carregando...", description: "Estamos processando a requisição"})}, 1000)
                     if (resultado.getText() === "checkin") {
                       checkIn.mutate({
                         longitude: location.coords.longitude,
