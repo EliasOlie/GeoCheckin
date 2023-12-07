@@ -23,14 +23,11 @@ import { api } from "@/utils/api";
 
 const formSchema = z.object({
   nome: z.string().max(20, "Nome muito grande"),
+  latitude: z.string(),
+  longitude: z.string()
 });
 
-interface CreateInstalationProps {
-  latitude: number
-  longitude: number
-}
-
-export default function CreateInstalationDialog(props: CreateInstalationProps) {
+export default function CreateInstalationDialog() {
   const createInstalationMutation = api.installation.createInstalation.useMutation({
     onSuccess() {
       toast({
@@ -53,13 +50,16 @@ export default function CreateInstalationDialog(props: CreateInstalationProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       nome: "",
+      latitude: "0",
+      longitude: "0"
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     createInstalationMutation.mutate({
       ...values,
-      ...props
+      latitude: parseFloat(values.latitude),
+      longitude: parseFloat(values.longitude)
     })
   }
 
@@ -82,6 +82,38 @@ export default function CreateInstalationDialog(props: CreateInstalationProps) {
                   </FormControl>
                   <FormDescription>
                     Este é o nome da instalação (Abreviar de preferencia).
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="latitude"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Latitude</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Latitude da instalação" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Este é o campo da latitude, coloque o valor exato ou não funcionará.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="longitude"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Longitude</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Longitude da instalação" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                  Este é o campo da longitude, coloque o valor exato ou não funcionará.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

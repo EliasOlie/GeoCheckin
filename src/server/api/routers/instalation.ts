@@ -1,10 +1,6 @@
 import { z } from "zod";
 
-import {
-  createTRPCRouter,
-  protectedProcedure,
-  publicProcedure,
-} from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import type { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { TRPCError } from "@trpc/server";
 
@@ -14,7 +10,7 @@ export const instalationRouter = createTRPCRouter({
       z.object({
         nome: z.string().max(20, "Nome muito grande"),
         latitude: z.number(),
-        longitude: z.number()
+        longitude: z.number(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -22,7 +18,7 @@ export const instalationRouter = createTRPCRouter({
         await ctx.db.instalation.create({
           data: {
             ...input,
-            threshold: 0.5
+            threshold: 0.5,
           },
         });
       } catch (error) {

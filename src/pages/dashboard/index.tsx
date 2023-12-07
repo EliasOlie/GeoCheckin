@@ -8,7 +8,7 @@ import Head from "next/head";
 import BottomBar from "@/components/BottomBar/BottomBar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { GeolocationProps } from "@/utils/interfaces";
+import type { GeolocationProps } from "@/utils/interfaces";
 import CreateUserDialog from "@/components/Dialogs/CreateUserDialog";
 import CreateInstalationDialog from "@/components/Dialogs/CreateInstalationDialog";
 
@@ -98,12 +98,7 @@ export default function Dashboard() {
           {getUserQuery?.role === "ADM" && (
             <div className="flex min-w-[50vw] mx-auto mt-4 gap-4 px-2 items-center justify-center">
               <CreateUserDialog />
-              {location && (
-                <CreateInstalationDialog
-                  latitude={location?.coords.latitude}
-                  longitude={location?.coords.longitude}
-                />
-              )}
+              <CreateInstalationDialog />
             </div>
           )}
         </div>
