@@ -1,10 +1,17 @@
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,14 +27,10 @@ import { Input } from "@/components/ui/input";
 
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 
+import * as z from "zod";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-
-import { api } from "@/utils/api";
-import { useState } from "react";
-import * as z from "zod";
-import { useToast } from "../ui/use-toast";
-import UserDialog from "../Dialogs/UsersDialog";
 
 const updateUserFormSchema = z.object({
   name: z.string().optional(),
@@ -35,12 +38,16 @@ const updateUserFormSchema = z.object({
   password: z.string().optional(),
 });
 
-export default function EditUserForm() {
+import type { User } from "@prisma/client";
+import { useState } from "react";
+import { useToast } from "../ui/use-toast";
+import { api } from "@/utils/api";
+
+export default function EditUserUserDialog() {
   const [passwordVisibility, setPasswordVisibility] = useState<boolean>(false);
   const { toast } = useToast();
 
-  const user = api.user.getUser.useQuery();
-  const updateUserMutation = api.user.updateUser.useMutation();
+  const updateUserMutation = api.user.updateUserById.useMutation();
 
   const form = useForm<z.infer<typeof updateUserFormSchema>>({
     resolver: zodResolver(updateUserFormSchema),
@@ -51,30 +58,67 @@ export default function EditUserForm() {
   });
 
   function onSubmit(values: z.infer<typeof updateUserFormSchema>) {
-    updateUserMutation.mutate(values, {
-      onSuccess() {
-        toast({
-          title: "Usuário atualizado com sucesso!",
-          description: "Logo logo as alterações vão ser perceptíveis",
-        });
+    updateUserMutation.mutate(
+      {
+        id: user!.id,
+        ...values,
       },
-      onError: () => {
-        toast({
-          title: "Ops parece que algo deu errado",
-          description: "Confira os dados e tente novamente",
-          variant: "destructive",
-        });
+      {
+        onSuccess() {
+          toast({
+            title: "Usuário atualizado com sucesso!",
+            description: "Logo logo as alterações vão ser perceptíveis",
+          });
+        },
+        onError: () => {
+          toast({
+            title: "Ops parece que algo deu errado",
+            description: "Confira os dados e tente novamente",
+            variant: "destructive",
+          });
+        },
       },
-    });
+    );
   }
 
+  const [user, setUser] = useState<User | undefined>(undefined);
+  const users = api.user.getAllUsers.useQuery().data;
+  const getUser = api.user.getUserById.useMutation({
+    onSuccess(data) {
+      setUser(data as unknown as User);
+    },
+  });
+
+  const selectUser = (u: string) => {
+    getUser.mutate(parseInt(u));
+  };
+
   return (
-    <Card className="min-h-[30em] min-w-[20em]">
-      <CardHeader>
-        <CardTitle>Perfil</CardTitle>
-        <CardDescription>Esse é o seu perfil de usuário</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <Dialog>
+      <DialogTrigger className="flex w-full px-10">
+        <Button
+          type="button"
+          className="flex flex-1 bg-amber-300 font-semibold text-black"
+        >
+          Editar Usuário
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Selecione o Usuário</DialogTitle>
+        </DialogHeader>
+        <Select onValueChange={selectUser}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Usuário" />
+          </SelectTrigger>
+          <SelectContent>
+            {users?.map((user) => (
+              <SelectItem value={user.id.toString()} key={user.id}>
+                {user.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
             <FormField
@@ -84,9 +128,11 @@ export default function EditUserForm() {
                 <FormItem>
                   <FormLabel>Nome</FormLabel>
                   <FormControl>
-                    <Input placeholder={user.data?.name} {...field} />
+                    <Input placeholder={user?.name} {...field} />
                   </FormControl>
-                  <FormDescription>Este é o seu nome.</FormDescription>
+                  <FormDescription>
+                    Este é o novo nome de usuário.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -98,10 +144,10 @@ export default function EditUserForm() {
                 <FormItem>
                   <FormLabel>Contato</FormLabel>
                   <FormControl>
-                    <Input placeholder={user.data?.contact} {...field} />
+                    <Input placeholder={user?.contact} {...field} />
                   </FormControl>
                   <FormDescription>
-                    Este é o seu numero de contato
+                    Este é o novo numero de contato
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -130,26 +176,21 @@ export default function EditUserForm() {
                     </div>
                   </FormControl>
                   <FormDescription>
-                    Esta será sua nova senha de acesso
+                    Esta será a nova senha de acesso
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            {user?.data?.role === "ADM" && (
-              <div className="flex justify-between">
-                {user?.data?.role === "ADM" && <UserDialog />}
-                <Button type="submit">Alterar dados</Button>
-              </div>
-            )}
-            {user?.data?.role === "USR" && (
-              <div className="flex justify-end">
-                <Button type="submit">Alterar dados</Button>
-              </div>
-            )}
+            <Button
+              type="submit"
+              disabled={user?.id !== undefined ? false : true}
+            >
+              Alterar dados
+            </Button>
           </form>
         </Form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 }

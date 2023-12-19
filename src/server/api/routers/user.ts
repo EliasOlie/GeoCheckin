@@ -78,26 +78,32 @@ export const userRouter = createTRPCRouter({
   }),
   getUserById: protectedProcedure
     .input(z.number())
-    .mutation(async ({ctx, input}) => {
-    return ctx.db.user.findUnique({ where: { id: input }, include: { checkins: true } })
-  }),
-  getAllUsers: protectedProcedure.query(async ({ctx}) => {
-    return ctx.db.user.findMany({ orderBy: { name: "asc" }})
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.user.findUnique({
+        where: { id: input },
+        include: { checkins: true },
+      });
+    }),
+  getAllUsers: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.db.user.findMany({ orderBy: { name: "asc" } });
   }),
   updateUserMonthlyHours: protectedProcedure
-    .input(z.object({
-      userId: z.string(),
-      monthlyHours: z.string(),    
-  })).mutation(async ({ctx, input}) => {
-    await ctx.db.user.update({
+    .input(
+      z.object({
+        userId: z.string(),
+        monthlyHours: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.user.update({
         where: {
-          id: parseInt(input.userId)
+          id: parseInt(input.userId),
         },
         data: {
-          monthlyHours: parseInt(input.monthlyHours)
-        }
-      })
-  }),
+          monthlyHours: parseInt(input.monthlyHours),
+        },
+      });
+    }),
   updateUser: protectedProcedure
     .input(
       z.object({
@@ -136,6 +142,64 @@ export const userRouter = createTRPCRouter({
         await ctx.db.user.update({
           where: {
             id: parseInt(ctx.session.user.id as unknown as string),
+          },
+          data: {
+            name: input.name || user.name,
+            contact: input.contact || user.contact,
+            password: input.password
+              ? await bcrypt.hash(input.password, 12)
+              : user.password,
+          },
+        });
+      } catch (error) {
+        const _error = error as PrismaClientKnownRequestError;
+        if (_error.code === "P2025") {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "User not found",
+          });
+        }
+      }
+    }),
+  updateUserById: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        contact: z.string().optional(),
+        password: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        if (!ctx.session) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "User not authenticated",
+          });
+        } else if (!ctx.session.user.id) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "User not authenticated",
+          });
+        }
+
+        const user = await ctx.db.user.findUniqueOrThrow({
+          where: {
+            id: input.id,
+          },
+        });
+
+        if (!user) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "User not found",
+          });
+        }
+
+        await ctx.db.user.update({
+          where: {
+            id: input.id,
           },
           data: {
             name: input.name || user.name,

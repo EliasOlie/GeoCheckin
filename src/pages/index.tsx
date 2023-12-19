@@ -1,22 +1,27 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import LoginForm from "@/components/Forms/LoginForm";
 import { getCsrfToken } from "next-auth/react";
-import type { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import type {
+  GetServerSidePropsContext,
+  InferGetServerSidePropsType,
+} from "next";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useEffect } from "react";
 
-import  { useRouter }  from "next/navigation"
+import { useRouter } from "next/navigation";
 
-export default function Home({ csrfToken }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const { status } = useSession()
-  const router = useRouter()
+export default function Home({
+  csrfToken,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const { status } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
-    if(status === "authenticated") {
-      router.push("/dashboard")
+    if (status === "authenticated") {
+      router.push("/dashboard");
     }
-  } , [])
+  }, []);
 
   return (
     <>
@@ -30,7 +35,7 @@ export default function Home({ csrfToken }: InferGetServerSidePropsType<typeof g
           <h1 className="text-2xl font-bold">Faça o login para continuar</h1>
           <p className="text-xm">É rapidinho!</p>
         </div>
-        <LoginForm csrfToken={csrfToken}/>
+        <LoginForm csrfToken={csrfToken ?? undefined} />
       </main>
     </>
   );
@@ -39,7 +44,7 @@ export default function Home({ csrfToken }: InferGetServerSidePropsType<typeof g
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   return {
     props: {
-      csrfToken: await getCsrfToken(context),
+      csrfToken: (await getCsrfToken(context)) ?? null,
     },
-  }
+  };
 }
