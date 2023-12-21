@@ -66,10 +66,10 @@ export const daillyRouter = createTRPCRouter({
         },
         include: {
           checkins: {
-          orderBy: {
-            timestamp: "asc"
-          }
-        },
+            orderBy: {
+              timestamp: "asc",
+            },
+          },
         },
       });
 
@@ -91,9 +91,10 @@ export const daillyRouter = createTRPCRouter({
           0.25
       ) {
         throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Ponto já foi batido, não tentar novamente pelos próximos 15 minutos",
-          });
+          code: "BAD_REQUEST",
+          message:
+            "Ponto já foi batido, não tentar novamente pelos próximos 15 minutos",
+        });
       }
 
       if (lastUserCheckin.checkins) {
@@ -122,6 +123,47 @@ export const daillyRouter = createTRPCRouter({
       }
     }),
 
+  deleteCheckin: protectedProcedure
+    .input(z.number())
+    .mutation(async ({ input, ctx }) => {
+      try {
+        await ctx.db.checkin.delete({
+          where: {
+            id: input,
+          },
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }),
+
+  createManuallyCheckin: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        instalation: z.string(),
+        date: z.string(),
+        time: z.string(),
+        kind: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        await ctx.db.checkin.create({
+          data: {
+            userId: parseInt(input.userId),
+            instalationName: input.instalation,
+            timestamp: new Date(
+              new Date(`${input.date}T${input.time}`).toISOString(),
+            ),
+            tipo: input.kind === "checkin" ? "CHECKIN" : "CHECKOUT",
+          },
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }),
+
   getMonthCheckins: protectedProcedure.query(({ ctx }) => {
     return ctx.db.checkin.findMany({
       where: {
@@ -131,18 +173,23 @@ export const daillyRouter = createTRPCRouter({
   }),
   getUserMonthData: protectedProcedure
     .input(
-    z.object({
-      userId: z.number(),
-      date: z.date().optional()
-    }))
+      z.object({
+        userId: z.number(),
+        date: z.date().optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const today = new Date();
 
       return await ctx.db.checkin.findMany({
         where: {
           timestamp: {
-            lte: input.date? new Date(input.date.getFullYear(), input.date.getMonth() + 1) : new Date(today.getFullYear(), today.getMonth() + 1),
-            gte: input.date? new Date(input.date.getFullYear(), input.date.getMonth(), 1) : new Date(today.getFullYear(), today.getMonth(), 1),
+            lte: input.date
+              ? new Date(input.date.getFullYear(), input.date.getMonth() + 1)
+              : new Date(today.getFullYear(), today.getMonth() + 1),
+            gte: input.date
+              ? new Date(input.date.getFullYear(), input.date.getMonth(), 1)
+              : new Date(today.getFullYear(), today.getMonth(), 1),
           },
           userId: input.userId,
         },

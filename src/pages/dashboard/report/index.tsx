@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import BottomBar from "@/components/BottomBar/BottomBar";
 import Head from "next/head";
 import { api } from "@/utils/api";
@@ -11,12 +12,32 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Checkin } from "@prisma/client";
+import type { Checkin } from "@prisma/client";
+
+import { Trash2Icon } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import CreateCheckinDialog from "@/components/Dialogs/CreateCheckin";
 
 export default function ReportPage() {
+  const { toast } = useToast();
   const checkins = api.dailly.getUserMonthData.useMutation({
-    onSuccess(data, variables, context) {
-        calcularHorasProduzidas(data)
+    onSuccess(data) {
+      calcularHorasProduzidas(data);
+    },
+  });
+  const deleteCheckin = api.dailly.deleteCheckin.useMutation({
+    onSuccess() {
+      toast({
+        title: "Checkin deletado com sucesso!",
+      });
+      checkins.mutate({ userId: selectedUserId });
+    },
+    onError: () => {
+      toast({
+        title: "Ops parece que algo deu errado",
+        description: "Se persistir chame a assistência",
+        variant: "destructive",
+      });
     },
   });
   const loggedUser = api.user.getUser.useQuery().data;
@@ -27,23 +48,22 @@ export default function ReportPage() {
   const [selectedUserId, setSelectedUserId] = useState<number>(0);
 
   const calcularHorasProduzidas = (data: Checkin[]) => {
-    const totalHorasProduzidas = data.reduce(
-      (total, checkin, index) => {
-        const checkout = data[index + 1];
+    const totalHorasProduzidas = data.reduce((total, checkin, index) => {
+      const checkout = data[index + 1];
 
-        if (
-          checkin.tipo === "CHECKIN" && checkout &&
-          checkout.tipo === "CHECKOUT"
-        ) {
-          const diffMilliseconds = new Date(checkout.timestamp).getTime() -
-            new Date(checkin.timestamp).getTime();
-          return total + diffMilliseconds / 36e5;
-        }
+      if (
+        checkin.tipo === "CHECKIN" &&
+        checkout &&
+        checkout.tipo === "CHECKOUT"
+      ) {
+        const diffMilliseconds =
+          new Date(checkout.timestamp).getTime() -
+          new Date(checkin.timestamp).getTime();
+        return total + diffMilliseconds / 36e5;
+      }
 
-        return total;
-      },
-      0,
-    );
+      return total;
+    }, 0);
     setHorasProduzidas(totalHorasProduzidas);
   };
 
@@ -66,15 +86,15 @@ export default function ReportPage() {
       if (loggedUser && loggedUser?.role !== "ADM") {
         checkins.mutate({
           userId: loggedUser.id,
-          date: new Date(e.target.value.replace(/-/g, '\/')),
+          date: new Date(e.target.value.replace(/-/g, "/")),
         });
       } else {
         checkins.mutate({
           userId: selectedUserId,
-          date: new Date(e.target.value.replace(/-/g, '\/')),
+          date: new Date(e.target.value.replace(/-/g, "/")),
         });
       }
-      return new Date(e.target.value.replace(/-/g, '\/'));
+      return new Date(e.target.value.replace(/-/g, "/"));
     });
   };
 
@@ -87,8 +107,11 @@ export default function ReportPage() {
       </Head>
       <main>
         {loggedUser?.role === "ADM" && (
-          <div className="min-w-full p-2 flex gap-2">
-            <Select onValueChange={(id) => selectUser(id)} defaultValue={loggedUser.id.toString()}>
+          <div className="flex min-w-full gap-2 p-2">
+            <Select
+              onValueChange={(id) => selectUser(id)}
+              defaultValue={loggedUser.id.toString()}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Selecionar Usuário" />
               </SelectTrigger>
@@ -107,35 +130,45 @@ export default function ReportPage() {
             />
           </div>
         )}
-        <h1 className="min-w-full text-center text-xl font-semibold border-2 border-black">
+        {loggedUser?.role === "ADM" && (
+          <div className="flex min-w-full gap-2 p-2">
+            <CreateCheckinDialog />
+          </div>
+        )}
+        <h1 className="min-w-full border-2 border-black text-center text-xl font-semibold">
           Relatório de horas mensais
         </h1>
         <ul className="flex flex-col">
           <div className="flex min-w-full">
-            <li className="flex w-[40vw] items-center justify-center border-l-2 border-b-2 border-black">
+            <li className="flex w-[30vw] items-center justify-center border-b-2 border-l-2 border-black">
               <p className="font-bold">Local</p>
             </li>
-            <li className="flex w-[20vw] items-center justify-center border-l-2  border-b-2 border-black">
+            <li className="flex w-[20vw] items-center justify-center border-b-2  border-l-2 border-black">
               <p className="font-bold">Tipo</p>
             </li>
-            <li className="flex w-[20vw] items-center justify-center border-l-2  border-b-2 border-black">
+            <li className="flex w-[20vw] items-center justify-center border-b-2  border-l-2 border-black">
               <p className="font-bold">Data</p>
             </li>
             <li className="flex w-[20vw] items-center justify-center border-x-2  border-b-2 border-black">
               <p className="font-bold">Hora</p>
             </li>
+            {loggedUser?.role === "ADM" && (
+              <li className="flex w-[10vw] items-center justify-center border-b-2  border-r-2 border-black">
+                <p className="font-bold">X</p>
+              </li>
+            )}
           </div>
           {checkins?.data?.map((checkin) => (
             <div key={undefined} className="flex">
               <li
                 key={"instalation-" + checkin.id}
-                className="flex w-[40vw] flex-1 items-center border-l-2  border-b-2 border-black"
+                className="flex w-[30vw] flex-1 items-center border-b-2  border-l-2 border-black"
               >
-                <p className="font-bold">{checkin.instalationName}</p>
+                <p className="truncate font-bold">{checkin.instalationName}</p>
               </li>
               <li
                 key={"tipo-" + checkin.id}
-                className="flex w-[20vw] flex-2 items-center border-l-2  border-b-2 border-black"
+                className="flex-2 flex w-[20vw] items-center border-b-2  border-l-2 border-black"
               >
                 <p className="font-bold">
                   {checkin.tipo === "CHECKIN" ? "Checkin" : "Checkout"}
@@ -143,31 +176,37 @@ export default function ReportPage() {
               </li>
               <li
                 key={"data-" + checkin.id}
-                className="flex w-[20vw] flex-2 items-center justify-end border-l-2  border-b-2 border-black"
+                className="flex-2 flex w-[20vw] items-center justify-end border-b-2  border-l-2 border-black"
               >
                 <p className="font-bold">
-                  {new Date(checkin.timestamp).toLocaleDateString().substring(
-                    0,
-                    5,
-                  )}
+                  {new Date(checkin.timestamp)
+                    .toLocaleDateString()
+                    .substring(0, 5)}
                 </p>
               </li>
               <li
                 key={"hora-" + checkin.id}
-                className="flex w-[20vw] flex-2 items-center justify-end border-x-2  border-b-2 border-black"
+                className="flex-2 flex w-[20vw] items-center justify-end border-x-2  border-b-2 border-black"
               >
                 <p className="font-bold">
-                  {new Date(checkin.timestamp).toLocaleTimeString().substring(
-                    0,
-                    5,
-                  )}
+                  {new Date(checkin.timestamp)
+                    .toLocaleTimeString()
+                    .substring(0, 5)}
                 </p>
               </li>
+              {loggedUser?.role === "ADM" && (
+                <li className="flex w-[10vw] items-center justify-center border-b-2  border-r-2 border-black">
+                  <Trash2Icon
+                    className="cursor-pointer text-red-500"
+                    onClick={() => deleteCheckin.mutate(checkin.id)}
+                  />
+                </li>
+              )}
             </div>
           ))}
         </ul>
 
-        <div className="flex items-center justify-between border-b-2 border-x-2 border-black">
+        <div className="flex items-center justify-between border-x-2 border-b-2 border-black">
           <p className="flex flex-1 border-r-2 border-black">
             Horas produzidas:
           </p>

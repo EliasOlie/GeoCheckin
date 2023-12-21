@@ -36,4 +36,7 @@ export const instalationRouter = createTRPCRouter({
         }
       }
     }),
+  getAllInstalation: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.db.instalation.findMany({ orderBy: { nome: "asc" } });
+  }),
 });
